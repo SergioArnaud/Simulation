@@ -1,0 +1,276 @@
+---
+title: "Tarea 3"
+author: "Sergio Arnaud, Jorge Rotter"
+date: "10/10/2018"
+output:
+  html_document: default
+  pdf_document: default
+header-includes:
+- \usepackage{amsmath}
+- \usepackage{mdsymbol}
+---
+
+## Pregunta 1.
+
+Consideren el siguiente modelo de líneas de espera con un servidor. Los tiempos de interarribo, así como los tiempos de servicio son independientes $U(0, 1)$.
+
+Sea $A_i$ el tiempo de interarribo entre los clientes $i − 1$ e $i$ y $S_i$ es el tiempo de servicio del cliente $i$. $W_i$ es el tiempo de espera en fila del cliente $i$. La condición inicial es que el primer cliente en el sistema llega en el tiempo 0. Entonces $$W_i = max\{0, W_{i−1} + S_{i−1} − A_i\}$$ para $i = 2, 3, . . . , 100$ donde $W_1 = 0$. Escriban un programa para simular 5000 realizaciones del tiempo total de espera en la fila, junto con 5000 realizaciones antitéticas.
+
+Comenzamos por crear la siguiente función que simula n realizaciones del proceso mencionado, con $S_i \sim U(a,b)$ y $A_i \sim U(a,b)$ donde se tiene que el parámetros "anthitecs" indica si la simulación se llevará a cabo o no con variables antitéticas:
+```{r, message=FALSE,echo=FALSE}
+library(tidyverse)
+```
+
+```{r}
+question_1_simulation <- function(n,a,b,antithetics=FALSE){
+  
+  tiempos_espera = rep(0,n)
+    
+  for (k in 1:n){
+    if (antithetics){
+      A = runif(50,a,b)
+      A = c(A,1-A)
+      S = runif(50,a,b)
+      S = c(S,1-S)
+    }
+    else{
+      A = runif(100,a,b)
+      S = runif(100,a,b)
+    }
+    W = rep(0,100)
+    for (i in 2:100){
+      W[i] = max(0, W[i-1] + S[i-1] - A[i])
+    }
+    tiempos_espera[k] = sum(W)
+  }
+  
+  return (tiempos_espera)
+}
+```
+
+Usando un estimador combinado de las realizaciones primarias y antitéticas,
+estimar la esperanza del tiempo de espera de los 100 clientes y su error estándar
+estimado. Estimar el porcentaje de reducción de varianza.
+
+Realizando la simulación con variables antitéticas:
+```{r}
+n <- 10000
+tiempos_espera_1 <- question_1_simulation(n,0,1,antithetics=TRUE)
+```
+La esperanza del tiempo de espera está dada por:
+```{r}
+mean(tiempos_espera_1)
+```
+Y el porcentaje de recucción de varianza:
+```{r}
+tiempos_espera_2 <- question_1_simulation(n,0,1,antithetics=FALSE)
+100*(sd(tiempos_espera_1) - sd(tiempos_espera_2) )/sd(tiempos_espera_2)
+```
+
+Modificando a uniformes en el (0,2) obtendremos la estimación
+```{r}
+tiempos_espera_1 <- question_1_simulation(n,0,2,antithetics=FALSE)
+tiempos_espera_2 <- question_1_simulation(n,0,2,antithetics=TRUE)
+mean(tiempos_espera_2)
+```
+
+Con una reducción de varianza:
+```{r}
+100*(sd(tiempos_espera_2) - sd(tiempos_espera_1)) / (sd(tiempos_espera_1))
+```
+
+
+## Pregunta 3
+
+Sean X y Y dos independientes exponenciales con medias 1 y 2 respectivamente y supongan que queremos estimar $P(X+Y>4)$.¿Cómo utilizarían condicionamiento para reducir la varianza del estimador? Digan si considerarían condicionar en X o en Y y porqué.
+
+Comencemos por realizar la simulación cruda de monte carlo:
+```{r}
+valor_exacto <- 2/(exp(1)^2)
+
+x = rexp(10000,1)
+y = rexp(10000,1/2)
+
+indicadora = ifelse(x+y>4,1,0)
+estimador_1 <- mean(indicadora)
+estimador_1
+```
+
+Notamos que $P(X+Y>4 | X=x) = P(Y > 4-X | X=x) = 1 - P(Y < 4-X | X=x) = exp^{\frac{x}{2} -2}$.
+
+Asimismo, $E[P(X+Y>4 | X=x)] = P(X+Y>4)$.
+
+Usando dichos resultados, realicemos la simulación condicionando
+```{r}
+estimador_2 <- mean(exp(x/2 -2)) 
+estimador_2
+```
+
+Y la reducción de varianza fue de:
+```{r}
+100*(var(exp(x/2 -2)) - var(indicadora))/var(indicadora)
+```
+
+Notemos que realizando el condicionamiento con y la estimación es sumamente mala
+```{r}
+estimador_3 <- mean(exp(y - 4))
+estimador_3
+```
+
+Esto se debe a que $ y \sim Exp(2)$ por lo que puede tomar valores de mayor magnitud que desestabilizan la simulación.
+
+## Pregunta 5
+
+Explicar cómo se pueden usar variables antitéticas en la simulación de la integral: $$ \int_0^1 \int_0^1 e^{(x+y)^2} dx \ dy$$
+¿Es claro en este caso que usando variables antitéticas es más eficiente que generando nuevos pares de variables aleatorias? Dar una justificación a su respuesta.
+
+El valor de dicha integral está dado por 4.89915, comencemos por realizar una simulación con el método crudo de montecarlo
+
+```{r}
+n <- 10000
+x <- runif(n)
+y <- runif(n)
+estimador_1 <- mean(exp((x+y)^2))
+varianza_1 <- var(exp(x+y)^2)
+```
+Obtenemos como estimador de la integral el valor:
+```{r}
+estimador_1
+```
+Con una varianza de:
+```{r}
+varianza_1
+```
+
+Asimismo, podemos utilizar el método de variables antitéticas de la siguiente forma: Comenzamos por generar una muestra aleatoria para las x's obteniendo $\frac{n}{2}$ uniformes $(u_1,...u_{\frac{n}{2}})$ y completamos las $\frac{n}{2}$ restantes con $\hat{u_i} = 1-u_i \ \forall i \in \{1, ... \frac{n}{2} \}$. Procedemos análogamente para generar la muestra aleatoria de las y's y realizamos la simulación. 
+
+El resultado es el siguiente:
+```{r}
+x <- runif(n/2)
+x <- c(x,1-x)
+
+y <- runif(n/2)
+y <- c(y,1-y)
+
+estimador_2 <- mean(exp((x+y)^2))
+varianza_2 <- var(exp((x+y)^2))
+```
+Obtenemos como estimador de la integral el valor:
+```{r}
+estimador_2
+```
+Con una varianza de:
+```{r}
+varianza_2
+```
+
+Y calculamos el porcentaje de reducción de varianza:
+```{r}
+100*(varianza_2 - varianza_1)/varianza_1
+```
+
+Se redujo considerablemente la varianza de forma que el método de variables antitéticas es, en este caso, más eficiente para la estimación cruda de la integral.
+
+## Pregunta 7
+
+El número de reclamos en una aseguradora que se harán la próxima semana depende de un factor ambiental $U$. Si el valor de este factor es $U = u$, entonces el número de reclamos tendrá distribución Poisson con media $\frac{15}{.5 + u}$. Suponiendo que
+$U \sim U (0, 1)$, sea p la probabilidad de que habrá al menos 20 reclamos la siguiente semana.
+
+Explicar como obtener una simulación cruda de p.
+
+Comenzamos por obtener una muestra aleatoria de tamaño n de una variable aleatoria uniforme en el intervalo $[0,1]$ y posteriormente, para cada u en dicha muestra generamos una muestra de tamaño 1 de una variable aleatoria poisson con media $\frac{15}{.5 + u}$, aceptamos si dicha cantidad es mayor a 20 y rechazamos en caso contrario, Un estimador de la probabilidad requerida es la tasa de aceptación obtenida por la simulación.
+```{r}
+n <- 10000
+u <- runif(n)
+lambda <- 15/(0.5+u)
+p1 <- lambda %>% map_int(function(l) rpois(1,l))
+mean(p1>20)
+var(p1>20)
+```
+Desarrollar un estimador de simulación eficiente usando esperanza condicional junto con una variable de control.
+
+$X | U \sim Po( \lambda )$ donde $\lambda = \frac{15}{.5+u}$ 
+
+De forma que 
+
+\begin{eqnarray}
+P(X \geq 20 | U=u) &=& 1 - P(X < 20 | U = u) \\
+&=& 1 - \sum\limits_{x=0}^{19} P(X=x|U=u)  \\
+&=& 1 - \sum\limits_{x=0}^{19} \frac{\lambda^x e^{-\lambda}}{x!} \quad \text{con} \quad \lambda = \frac{15}{.5+u}
+\end{eqnarray}
+
+Usando esto y dado que $E[P(X \geq 20 | U=u)] = P(X \geq 20)$ procedemos para desarrollar el estimador.
+```{r}
+u <- runif(n)
+lambda <- 15/(0.5+u)
+poiss_d <- function(x, lambda) exp(-lambda)*lambda^x/factorial(x)
+p2 <- lambda %>% map_dbl(function(l) 1-sum(poiss_d(0:19, l)))
+mean(p2)
+var(p2)
+```
+
+Desarrollar un estimador de simulación eficiente usando esperanza condicional y variables antitéticas.
+```{r}
+u <- runif(n/2)
+u <- c(u, 1-u)
+lambda <- 15/(0.5+u)
+poiss_d <- function(x, lambda) exp(-lambda)*lambda^x/factorial(x)
+p3 <- lambda %>% map_dbl(function(l) 1-sum(poiss_d(0:19, l)))
+mean(p3)
+var(p3)
+```
+
+Notemos que la reducción de varianza con el segundo método es de:
+```{r}
+100*(var(p2) - var(p1))/var(p1)
+```
+Y con el tercer método es de:
+```{r}
+100*(var(p3) - var(p1))/var(p1)
+```
+
+
+## Pregunta 9
+
+Sea S la suma de los resultados de lanzar 100 veces un dado honesto. Usen la de- sigualdad de Chebyshev para acotar P (S ≥ 380).
+
+La desigualdad de Chebyshev dice que, dada $X$ una variable aleatoria con esperanza finita y varianza positiva, para todo número real $k>0$ tenemos: 
+
+$$\Pr(|X-\mu |\geq k\sigma )\leq {\frac {1}{k^{2}}}.$$
+
+A partir de dicha expresión se obtiene la siguiente desigualdad, conocida como "one-sided Chebyshev":
+
+$$\Pr(X \geq \mu + \alpha ) \leq {\frac {\sigma^2}{\sigma^2 + \alpha^2}}.$$
+
+Comencemos por obtener la media de S, donde S es la suma de los resultados de lanzar 100 veces un dado honesto.
+
+$E[S] = \sum\limits_{i=1}^{100} E[X_i]$ donde $X_i$ es la variable aleatoria discreta que representa el lanzamiento de un dado honesto.
+
+Sabemos que $E[X_i] = 3.5$ de forma que $E[S] = \sum\limits_{i=1}^{100} 3.5 = 350$
+
+Por otro lado, $Var(S) = \sum\limits_{i=1}^{100} Var(X_i)$ dado que las $X_i$ son independientes.
+
+Sabemos que $Var(X_i) = \frac{35}{12}$ de forma que $Var(S) = \sum\limits_{i=1}^{100} \frac{35}{12} = \frac{3500}{12}$
+
+Utilizando estos resultados obtenemos la cota:
+```{r}
+mu = 350 
+alpha = 30
+sigma.squared = 100*(35/12)
+
+(sigma.squared) / (sigma.squared + alpha^2)
+```
+
+Finalmente, realizamos una simulación para obtener un valor aproximado de dicha probabilidad:
+```{r}
+n <- 10000
+sums = rep(0,n)
+for (i in 1:n){
+  sums[i] <- sum(sample(1:6,100, replace=T))
+}
+indicadora <- ifelse(sums > 380,1,0)
+mean(indicadora)
+```
+El valor obtenido cumple, por supuesto, con la cota obenida por la desigualdad de Chebyshev pero nos permite observar que ésta última no es una cota estricta.
+
+

@@ -1,0 +1,6 @@
+True
+Falla cond. 2:
+2 es primo            y divide a m=16 pero no a (a-1)=11
+Falla cond. 3:
+4 divide a        m=16 pero no a (a-1)=11
+Los nums. no son primos relativos,              su MCD(12,16) = 4

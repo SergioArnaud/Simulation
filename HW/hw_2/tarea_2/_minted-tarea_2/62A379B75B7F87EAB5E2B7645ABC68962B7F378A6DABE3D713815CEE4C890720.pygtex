@@ -1,0 +1,41 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{import} \PYG{n+nn}{math}
+
+\PYG{k}{def} \PYG{n+nf}{fibo}\PYG{p}{(}\PYG{n}{x0}\PYG{p}{,} \PYG{n}{x1}\PYG{p}{,} \PYG{n}{m}\PYG{o}{=}\PYG{l+m+mi}{5}\PYG{p}{):}
+    \PYG{n}{s} \PYG{o}{=} \PYG{n+nb}{set}\PYG{p}{();} \PYG{n}{s}\PYG{o}{.}\PYG{n}{add}\PYG{p}{((}\PYG{n}{x0}\PYG{p}{,}\PYG{n}{x1}\PYG{p}{))}
+    \PYG{n}{sequence} \PYG{o}{=} \PYG{p}{[}\PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{x0}\PYG{p}{)]}
+    
+    \PYG{n}{val} \PYG{o}{=} \PYG{p}{(}\PYG{n}{x0}\PYG{o}{+}\PYG{n}{x1}\PYG{p}{)} \PYG{o}{\PYGZpc{}} \PYG{n}{m}
+    \PYG{n}{x0} \PYG{o}{=} \PYG{n}{x1}\PYG{p}{;} \PYG{n}{x1} \PYG{o}{=} \PYG{n}{val}
+    
+    \PYG{k}{while} \PYG{o+ow}{not} \PYG{p}{(}\PYG{n}{x0}\PYG{p}{,}\PYG{n}{x1}\PYG{p}{)} \PYG{o+ow}{in} \PYG{n}{s}\PYG{p}{:}
+        \PYG{n}{s}\PYG{o}{.}\PYG{n}{add}\PYG{p}{((}\PYG{n}{x0}\PYG{p}{,}\PYG{n}{x1}\PYG{p}{))}
+        \PYG{n}{sequence}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{x0}\PYG{p}{))}
+        
+        \PYG{n}{val} \PYG{o}{=} \PYG{p}{(}\PYG{n}{x0}\PYG{o}{+}\PYG{n}{x1}\PYG{p}{)} \PYG{o}{\PYGZpc{}} \PYG{n}{m}
+        \PYG{n}{x0} \PYG{o}{=} \PYG{n}{x1}\PYG{p}{;} \PYG{n}{x1} \PYG{o}{=} \PYG{n}{val}
+    
+    \PYG{k}{return} \PYG{n}{sequence}
+
+\PYG{k}{def} \PYG{n+nf}{get\PYGZus{}different\PYGZus{}cicles\PYGZus{}fibonacci}\PYG{p}{(}\PYG{n}{n}\PYG{o}{=}\PYG{l+m+mi}{5}\PYG{p}{):}
+    \PYG{n}{different\PYGZus{}cicles} \PYG{o}{=} \PYG{p}{[]}
+
+    \PYG{k}{for} \PYG{n}{x0} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{n}\PYG{p}{):}
+        \PYG{k}{for} \PYG{n}{x1} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{n}\PYG{p}{):}
+
+            \PYG{n}{new\PYGZus{}cicle} \PYG{o}{=} \PYG{n}{fibo}\PYG{p}{(}\PYG{n}{x0}\PYG{p}{,}\PYG{n}{x1}\PYG{p}{,}\PYG{n}{n}\PYG{p}{)}
+            \PYG{n}{new\PYGZus{}cicle\PYGZus{}s} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}\PYGZhy{}\PYGZsq{}}\PYG{o}{.}\PYG{n}{join}\PYG{p}{(}\PYG{n}{new\PYGZus{}cicle}\PYG{p}{)}\PYG{o}{+}\PYG{l+s+s1}{\PYGZsq{}\PYGZhy{}\PYGZsq{}}
+
+            \PYG{n}{is\PYGZus{}new} \PYG{o}{=} \PYG{n+nb+bp}{True}
+
+            \PYG{k}{for} \PYG{n}{cicle} \PYG{o+ow}{in} \PYG{n}{different\PYGZus{}cicles}\PYG{p}{:}
+                \PYG{n}{cicle\PYGZus{}s} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}\PYGZhy{}\PYGZsq{}}\PYG{o}{.}\PYG{n}{join}\PYG{p}{(}\PYG{n}{cicle}\PYG{p}{)}\PYG{o}{+}\PYG{l+s+s1}{\PYGZsq{}\PYGZhy{}\PYGZsq{}}
+
+                \PYG{k}{if} \PYG{p}{(}\PYG{n}{cicle\PYGZus{}s} \PYG{o+ow}{in} \PYG{p}{(}\PYG{n}{new\PYGZus{}cicle\PYGZus{}s}\PYG{o}{*}\PYG{l+m+mi}{2}\PYG{p}{))} \PYG{o+ow}{and} \PYG{p}{(}\PYG{n}{new\PYGZus{}cicle\PYGZus{}s} \PYG{o+ow}{in} \PYG{p}{(}\PYG{n}{cicle\PYGZus{}s}\PYG{o}{*}\PYG{l+m+mi}{2}\PYG{p}{)):}
+                    \PYG{n}{is\PYGZus{}new} \PYG{o}{=} \PYG{n+nb+bp}{False}
+                    \PYG{k}{break}
+
+            \PYG{k}{if} \PYG{n}{is\PYGZus{}new}\PYG{p}{:}
+                \PYG{n}{different\PYGZus{}cicles}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n}{new\PYGZus{}cicle}\PYG{p}{)}
+    \PYG{k}{return} \PYG{n}{different\PYGZus{}cicles}
+\end{Verbatim}

@@ -1,0 +1,48 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from} \PYG{n+nn}{sympy.ntheory} \PYG{k+kn}{import} \PYG{n}{primefactors}\PYG{p}{,} \PYG{n}{factorint}\PYG{p}{,} \PYG{n}{isprime}
+\PYG{k+kn}{import} \PYG{n+nn}{math}
+
+\PYG{k}{def} \PYG{n+nf}{gcd}\PYG{p}{(}\PYG{n}{a}\PYG{p}{,} \PYG{n}{b}\PYG{p}{):}
+    \PYG{k}{if} \PYG{n}{b} \PYG{o}{\PYGZgt{}} \PYG{n}{a}\PYG{p}{:}
+        \PYG{k}{return} \PYG{n}{gcd}\PYG{p}{(}\PYG{n}{b}\PYG{p}{,} \PYG{n}{a}\PYG{p}{)}
+    \PYG{k}{return} \PYG{n}{b} \PYG{k}{if} \PYG{n}{a} \PYG{o}{\PYGZpc{}} \PYG{n}{b} \PYG{o}{==} \PYG{l+m+mi}{0} \PYG{k}{else} \PYG{n}{gcd}\PYG{p}{(}\PYG{n}{b}\PYG{p}{,} \PYG{n}{a} \PYG{o}{\PYGZpc{}} \PYG{n}{b}\PYG{p}{)}
+
+\PYG{k}{def} \PYG{n+nf}{are\PYGZus{}coprime}\PYG{p}{(}\PYG{n}{a}\PYG{p}{,}\PYG{n}{b}\PYG{p}{):}
+    \PYG{n}{mcd} \PYG{o}{=} \PYG{n}{gcd}\PYG{p}{(}\PYG{n}{a}\PYG{p}{,}\PYG{n}{b}\PYG{p}{)}
+    \PYG{k}{if} \PYG{n}{mcd} \PYG{o}{!=} \PYG{l+m+mi}{1}\PYG{p}{:}
+        \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Los nums. no son primos relativos,}\PYG{l+s+se}{\PYGZbs{}}
+\PYG{l+s+s1}{              su MCD(\PYGZob{}\PYGZcb{},\PYGZob{}\PYGZcb{}) = \PYGZob{}\PYGZcb{}\PYGZsq{}}\PYG{o}{.}\PYG{n}{format}\PYG{p}{(}\PYG{n}{a}\PYG{p}{,}\PYG{n}{b}\PYG{p}{,}\PYG{n}{mcd}\PYG{p}{))}
+        \PYG{k}{return} \PYG{n+nb+bp}{False}
+    \PYG{k}{else}\PYG{p}{:}
+        \PYG{k}{return} \PYG{n+nb+bp}{True}
+        
+    \PYG{k}{return} \PYG{n}{gcd}\PYG{p}{(}\PYG{n}{a}\PYG{p}{,}\PYG{n}{b}\PYG{p}{)} \PYG{o}{==} \PYG{l+m+mi}{1}
+
+\PYG{k}{def} \PYG{n+nf}{verify\PYGZus{}condition\PYGZus{}2}\PYG{p}{(}\PYG{n}{m}\PYG{p}{,}\PYG{n}{a}\PYG{p}{):}
+    \PYG{n}{prime\PYGZus{}factors} \PYG{o}{=} \PYG{n}{primefactors}\PYG{p}{(}\PYG{n+nb}{int}\PYG{p}{(}\PYG{n}{m}\PYG{o}{/}\PYG{l+m+mi}{2}\PYG{p}{))}
+    \PYG{k}{for} \PYG{n}{prime\PYGZus{}factor} \PYG{o+ow}{in} \PYG{n}{prime\PYGZus{}factors}\PYG{p}{:}
+        \PYG{k}{if} \PYG{p}{(}\PYG{n}{a}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{)}\PYG{o}{\PYGZpc{}}\PYG{n}{prime\PYGZus{}factor} \PYG{o}{!=} \PYG{l+m+mi}{0}\PYG{p}{:}
+            \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Falla cond. 2:}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s1}{\PYGZob{}\PYGZcb{} es primo}\PYG{l+s+se}{\PYGZbs{}}
+\PYG{l+s+s1}{            y divide a m=\PYGZob{}\PYGZcb{} pero no a (a\PYGZhy{}1)=\PYGZob{}\PYGZcb{}\PYGZsq{}}
+            \PYG{o}{.}\PYG{n}{format}\PYG{p}{(}\PYG{n}{prime\PYGZus{}factor}\PYG{p}{,} \PYG{n}{m}\PYG{p}{,} \PYG{n}{a}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{))}
+            \PYG{k}{return} \PYG{n+nb+bp}{False}
+    \PYG{k}{return} \PYG{n+nb+bp}{True}
+
+\PYG{k}{def} \PYG{n+nf}{verify\PYGZus{}condition\PYGZus{}3}\PYG{p}{(}\PYG{n}{m}\PYG{p}{,}\PYG{n}{a}\PYG{p}{):}
+    \PYG{k}{if} \PYG{n}{m}\PYG{o}{\PYGZpc{}}\PYG{l+m+mi}{4} \PYG{o}{==} \PYG{l+m+mi}{0} \PYG{o+ow}{and} \PYG{p}{(}\PYG{n}{a}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{)}\PYG{o}{\PYGZpc{}}\PYG{l+m+mi}{4} \PYG{o}{!=} \PYG{l+m+mi}{0}\PYG{p}{:}
+        \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Falla cond. 3:}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s1}{4 divide a}\PYG{l+s+se}{\PYGZbs{}}
+\PYG{l+s+s1}{        m=\PYGZob{}\PYGZcb{} pero no a (a\PYGZhy{}1)=\PYGZob{}\PYGZcb{}\PYGZsq{}}\PYG{o}{.}\PYG{n}{format}\PYG{p}{(} \PYG{n}{m}\PYG{p}{,} \PYG{n}{a}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{))}
+        \PYG{k}{return} \PYG{n+nb+bp}{False}
+    \PYG{k}{return} \PYG{n+nb+bp}{True}
+
+\PYG{k}{def} \PYG{n+nf}{complete\PYGZus{}period}\PYG{p}{(}\PYG{n}{a}\PYG{p}{,}\PYG{n}{c}\PYG{p}{,}\PYG{n}{m}\PYG{p}{):}
+    
+    \PYG{n}{coprime}     \PYG{o}{=} \PYG{n}{are\PYGZus{}coprime}\PYG{p}{(}\PYG{n}{c}\PYG{p}{,}\PYG{n}{m}\PYG{p}{)}
+    \PYG{n}{condition\PYGZus{}2} \PYG{o}{=} \PYG{n}{verify\PYGZus{}condition\PYGZus{}2}\PYG{p}{(}\PYG{n}{m}\PYG{p}{,}\PYG{n}{a}\PYG{p}{)}
+    \PYG{n}{condition\PYGZus{}3} \PYG{o}{=} \PYG{n}{verify\PYGZus{}condition\PYGZus{}3}\PYG{p}{(}\PYG{n}{m}\PYG{p}{,}\PYG{n}{a}\PYG{p}{)}
+    
+    \PYG{k}{if} \PYG{n}{coprime} \PYG{o+ow}{and} \PYG{n}{condition\PYGZus{}2} \PYG{o+ow}{and} \PYG{n}{condition\PYGZus{}3}\PYG{p}{:}
+        \PYG{k}{return} \PYG{n+nb+bp}{True}
+    \PYG{k}{return} \PYG{n+nb+bp}{False}
+    
+\end{Verbatim}

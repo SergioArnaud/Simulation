@@ -1,0 +1,392 @@
+---
+title: "Tarea 3"
+author: "Jorge Rotter, Sergio Arnaud"
+date: "10/10/2018"
+output:
+  html_document: default
+  pdf_document: default
+header-includes:
+- \usepackage{amsmath}
+- \usepackage{mdsymbol}
+---
+
+## Pregunta 1
+Un estadístico está interesado en el número N de peces en un estanque. El captura 250 peces, los marca y los regresa al estanque. Unos cuantos días después regresa y atrapa peces hasta que obtiene 50 peces marcados, en ese punto también tiene 124 peces no marcados (la muestra total es de 174 peces).
+
+  - ¿Cuál es la estimación de N?
+  
+$\frac{124}{50} = 2.48$ de forma que la estimación de N está dada por $2.48\cdot250=620$
+  
+  - Hagan un programa (en excel o en R), que permita simular el proceso de obtener la primera y segunda muestra considerando como parámetros el tamaño N de la población de interés, el tamaño de la primera y segunda muestra y como datos a estimar son: de qué tamaño debe ser n1 y n2 para obtener una buena aproximación y ver cómo se afecta por el tamaño N.
+
+El siguiente código, para una N dada (en este caso N=620) regresa los tamaños de muestra (n1 y n2) que dan la mejor estimación de N donde n1 es la muestra que se debe de obtener y marcar en una primera instancia y n2 es la muestra que se debe obtener en una segunda instancia para comparar los marcados vs los no marcados y estimar la población total.
+```{r}
+N <- 620
+j <-1
+means <-matrix(0, nrow=round(N/4), ncol=round(N/4))
+for (N1 in 1:round(N/4)){
+  for (N2 in 1:round(N/4)){
+    aprox = rep(0,15)
+    for (i in 1:15){
+       l = c(rep(0,N1),rep(1,N-N1))
+       s <- sample(l,N2)
+       aprox[i] = (sum(s)/(length(s)-sum(s)))*N1
+    }
+    means[[N1,N2]] = mean(aprox)
+    j = j+1
+  }
+}
+ans <- which((abs(means - N)) == min(abs(means - N)),arr.ind=T)
+# n1
+ans[1]
+# n2
+ans[2]
+```
+
+## Pregunta 3
+
+Las densidades dadas son:
+```{r}
+cauchy <- function(x, beta, gamma){ 
+  1 / (pi*beta*(1 + ((x-gamma)/beta)^2))
+}
+gumbel <- function(x, beta, gamma){ 
+  (1 / beta) *exp(-exp(-(x-gamma)/beta) - (x-gamma)/beta)
+}
+logistic <- function(x, beta, gamma){
+  ( (1/beta)*exp(-(x-gamma)/beta) ) / ((1 + exp(-(x)))^2)
+}
+pareto <- function(x, c, alpha){
+  alpha*((c^alpha))/(x^(alpha+1))
+}
+
+```
+
+#### Cauchy
+Para generar la muestra aleatoria de la distribución Cauchy podemos usar el teorema de la transformada inversa y obtenemos la siguiente función:
+
+```{r}
+rcauchy_ <- function(n, beta, gamma){
+  u <- runif(n)
+  cauchy_sample <- tan(pi*(u-1/2))*beta + gamma
+  return (cauchy_sample)
+}
+```
+
+Probando el método
+
+```{r}
+beta <- 1
+gamma <- 0
+n <- 5000
+cauchy_sample = rcauchy_(n, beta, gamma)
+hist(cauchy_sample, xlim =c(-10,10), breaks = c(min(cauchy_sample),seq(from=-10,to=10,by=.25), max(cauchy_sample)), prob = T)
+curve(cauchy(x,beta,gamma),from=-25,to=25,col="blue", add = T)
+```
+
+La muestra generada efectivamente sigue una distribución Cauchy.
+
+Verificando empíricamente la ley fuerte de los grandes números:
+```{r}
+n_values = seq(from=50, to=5000, by=50)
+x_barras = rep(0,length(n_values))
+for (n in n_values){
+  x_barras[n/50] = sum(rcauchy_(n, beta, gamma))/n
+}
+plot(x_barras)
+```
+Los valores oscilan alrededor del cero pero hay algunos valores que difieren mucho, esto es normal puesto que la distribución Cauchy no tiene media.
+
+#### Gumbel
+
+Dado que la función de distribución es $e^{-e^{-\frac{x-\gamma}{\beta}}}$, 
+invirtiendo tendremos $X = -\beta \log(-\log(u)) + \gamma$, usando el teorema de la
+transformación inversa:
+
+```{r}
+rgumbel_ <- function(n,beta, gamma){
+  u <- runif(n)
+  gumbel_sample <- -beta*log(-log(u)) + gamma
+  return (gumbel_sample)
+}
+```
+Probando el método
+
+```{r}
+gumbel_sample = rgumbel_(5000,beta,gamma)
+hist(gumbel_sample, breaks = 50, prob = T)
+curve(gumbel(x,beta,gamma),from=-10,to=10,col="red", add=T)
+```
+La muestra generada efectivamente sigue una distribución Gumbel.
+
+Verificando empíricamente la ley fuerte de los grandes números:
+```{r}
+x_barras = rep(0,length(n_values))
+for (n in n_values){
+  x_barras[n/50] = sum(rgumbel_(n, beta, gamma))/n
+}
+plot(x_barras)
+abline(h=(gamma + beta*0.5772), col='red')
+```
+La media teórica es $\gamma + \beta*c$ donde $c$ es la constante de  Euler–Mascheroni, en la gráfica notamos que, efectivamente, se cumple empíricamente la Ley fuerte de los grandes números.
+
+#### Logística
+
+Dado que la función de distribución es $\frac{1}{1+e^{-(x-\gamma)/\beta}}$, 
+invirtiendo tendremos $X = -\beta \log(\frac{1}{u} -1) + \gamma$, usando el teorema de la transformación inversa:
+
+```{r}
+rlogistic_ <- function(n,beta,gamma){
+  u <- runif(n)
+  logistic_sample <- -beta*log(1/u -1) + gamma
+  return (logistic_sample)
+}
+```
+Probando el método
+
+```{r}
+logistic_sample = rlogistic_(5000,beta,gamma)
+hist(logistic_sample, breaks = 50, prob = T)
+curve(logistic(x,beta,gamma),from=-10,to=10,col="red", add=T)
+```
+La muestra generada efectivamente sigue una distribución Logística
+
+Verificando empíricamente la ley fuerte de los grandes números:
+```{r}
+x_barras = rep(0,length(n_values))
+for (n in n_values){
+  x_barras[n/50] = sum(rlogistic_(n, beta, gamma))/n
+}
+plot(x_barras)
+abline(h=gamma,col="red")
+```
+La media teórica es $\gamma$. En la gráfica notamos que, efectivamente, se cumple empíricamente la Ley fuerte de los grandes números.
+
+
+#### Pareto
+
+La inversa de la función de distribución está dada por $X = \frac{c}{u^{1/\alpha}}$, usando el teorema de la transformada inversa:
+
+```{r}
+rpareto_ <- function(n,c,alpha){
+  u <- runif(n)
+  pareto_sample <- c / (u^(1/alpha))
+}
+```
+Probando el método
+
+```{r}
+c <- 1
+alpha <- 2
+pareto_sample = rpareto_(5000,c,alpha)
+hist(pareto_sample, xlim=c(1,5), breaks = c(seq(from=-10,to=10,by=.25),max(pareto_sample)), prob = T)
+curve(pareto(x,c,alpha),from=1,to=5,col="blue", add = T)
+```
+La muestra generada efectivamente sigue una distribución Pareto.
+
+Verificando empíricamente la ley fuerte de los grandes números:
+```{r}
+x_barras = rep(0,length(n_values))
+for (n in n_values){
+  x_barras[n/50] = sum(rpareto_(n, c, alpha))/n
+}
+plot(x_barras)
+abline(h=2,col="red")
+```
+La media teórica es $\frac{c \ \alpha}{\alpha -1} = 2 $. En la gráfica notamos que, efectivamente, se cumple empíricamente la Ley fuerte de los grandes números.
+
+## Pregunta 5
+
+Considerando la transformación polar de Marsaglia para generar muestras de normales estándar, muestren que la probabilidad de aceptación de $S = V12 + V22$ en el paso 2 es $\pi/4$, y encuentren la distribución del número de rechazos de S antes de que ocurra una aceptación. ¿Cuál es el número esperado de ejecuciones del paso 1?
+
+Se tienen $V_1, V_2 \sim Unif(-1,1)$ y $S=V_1^2 + V_2^2$ si $V_1^2 + V_2^2 > 1$. Por un lado, el area de aceptación es un circulo de radio 1 y centrado en cero. Por otro lado el area total es el recuadro $[-1,1]  \times [-1,1]$, el área del círculo es $\pi$ y el area del recuadro es igual a dos por lo que la probabilidad de aceptación es $\frac{\pi}{4}$
+
+El número de rechazos de S antes de que ocurra una aceptación se distribuye como una geométrica con parámetro $\frac{\pi}{4}$.
+
+Si $X \sim Geom(\frac{\pi}{4})$, entonces eel número esperado de ejecuciones del paso 1 es igual a la esperanza X, $E[X] = \frac{1}{\frac{\pi}{4}} = \frac{4}{pi}$
+
+## Pregunta 7
+
+Desarrollen un algoritmo para generar una variable aleatoria binomial, usando la técnica de convolución (Hint: ¿cuál es la relación entre binomiales y Bernoullis?) Generar una muestra de 100,000 números. ¿Qué método es más eficiente, el de con- voluciones o la función rbinom en R?
+
+Podemos usar el método de la convolución para generar la muestra aleatoria de una Binomial usando el hecho de que si $X_i \sim Ber(p) \quad i\in\{1,...,n\}$ entonces $\sum_{i=1}^n Xi \sim Bin(n,p)$.
+
+La siguiente función utiliza dicha información para generar la muestra aleatoria de tamaño n de una variable aleatoria binomial de parámetros n,p:
+```{r}
+rbinom_ <-function(n,size,p){
+  binomial_sample <- rep(0,n)
+  for (i in 1:n){
+    binomial_sample[i] <- sum(sample(0:1, size=size,replace=T, prob=c(1-p,p)))
+  }
+  return(binomial_sample)
+}
+```
+Finalmente, comparemos los tiempos de ejecución para ver cual es más eficiente:
+
+```{r}
+system.time(rbinom_(1000,10,.5))
+system.time(rbinom(1000,10,.5))
+```
+Como era de esperarse, la función de R es más eficiente. El algoritmo utilizado por R es llamado el algoritmo BTPEC para samplear normales (Kachitvichyanukul, V. and Schmeiser, B. W. (1988). Binomial random variate generation.)
+
+## Pregunta 9
+
+Simular un proceso Poisson no homogéneo con función de intensidad dada por
+$\lambda(t) = sen(t)$.
+
+La siguiente función genera el proceso:
+```{r}
+non_homogeneous_poisson_process <- function(t){
+  # lambda = 1 acota la función de intensidad del proceso
+  lambda <- 1
+
+  s = c(rexp(1,1))
+  while(tail(s,1) < t){
+    s = c(s, tail(s,1)+rexp(1,1))
+  }
+  s = s[-length(s)]
+  
+  u <- runif(length(s))
+  ss <- s[u <= abs(sin(s)/lambda)]
+  Ns <- 1:length(ss)
+  
+  return(list(intentados=s, aceptados = ss, cuenta= Ns))
+}
+```
+
+Simulando el proceso.
+```{r}
+ans = non_homogeneous_poisson_process(50)
+par(mfrow=c(1,2), pty='s')
+plot(ans$aceptados, ans$cuenta, type = "s", ylab = "N(t)",xlab='t',
+     main = "Proceso Poisson no homogéneo",
+     sub = expression(lambda(t) == exp(paste("sen","(t)")))) 
+
+plot(ans$intentados, sin(ans$intentados),col = "red", lwd = 1 )
+points(ans$aceptados, sin(ans$aceptados),col = "blue", lwd = 1)
+curve(sin(x), from=0, to=100, add=T)
+abline(h=-.5)
+abline(h=.5)
+```
+La gráfica de la izquierda es el proceso simulado, la  gráfica de la derecha es la gráfica de sen(t), los puntos sobre la curva son aquellos puntos de la forma $(t,sen(t))$, los puntos rojos fueron rechazados, en caso contrario fueron aceptados en el proceso.
+
+## Pregunta 11
+
+Escribir una función para generar una mezcla de una distribución normal multivariada con dos componentes con medias $\mu_1$ y $\mu_2$ y matrices de covarianzas $S_1$ y $S_2$ respectivamente.
+
+```{r}
+mixed_normal <- function(n, mu_1, mu_2, S1, S2,p){
+  
+  m <- matrix(rnorm(n),nrow = length(mu_1),ncol =n)
+  mixed_normals <- matrix(0, nrow=length(mu_1), ncol = n)
+  
+  B1 <- chol(S1)
+  B2 <- chol(S2)
+  
+  for( i in 1:n){
+    if (runif(1) < p){
+      mixed_normals[,i] <- mu_1 + B1%*%m[,i]
+    }
+    else{
+      mixed_normals[,i] <-mu_2 + B2%*%m[,i]
+    }
+  }
+  
+  return (mixed_normals)
+}
+
+```
+
+Con el programa, generar una muestra de tamaño $n = 1000$ observaciones de una mezcla 50% de una normal 4 dimensional con $\mu_1 =(0,0,0,0)$ y $\mu_2 = (2, 3, 4, 5)$, y matrices de covarianzas $S_1 = S_2 = I_4$.
+```{r}
+normal_multivariate <- mixed_normal(10000,c(2,3,4,5),c(0,0,0,0),diag(4),diag(4),.5 )
+```
+Obtener los histogramas de las 4 distribuciones marginales.
+```{r}
+par(mfrow=c(2,2))
+for (i in 1:4){
+  hist(normal_multivariate[i,],breaks=50)
+}
+```
+
+### Pregunta 13
+
+Las ocurrencias de huracanes que tocan tierra durante el fenómeno meteorológico “el Niño” se modelan como un proceso Poisson (ver Bove et al (1998)). Los autores aseguran que “Durante un año de ’El Niño’, la probabilidad de dos o más huracanes haciendo contacto con tierra en los estados Unidos es 28 %”. Encontrar la tasa del proceso Poisson.
+
+Si $X \sim Po(\lambda)$, entonces $f(x;\lambda) = \frac{e^{-\lambda}\lambda^x}{x!}$.
+
+Dado que $P(X \geq 2) = .72$ tenemos que $P(X \leq 1) = .28$ pero $P(X \leq 1) = e^{-\lambda} +e^{-\lambda}\lambda = .72$ y resolviendo para $\lambda$ obtenemos: $\lambda = 1.043$
+
+De forma que la tasa del proceso buscado es $\lambda = 1.043$
+
+### Pregunta 15
+
+Construyan un vector de 100 números crecientes y espaciados regularmente entre 0.1 y 20. Llámenlo SIG2 . Ahora construyan otro vector de longitud 21 empezando en −1 y terminando en 1. Llámenlo RHO.
+```{r}
+sig2 = seq(from=.1,to=20,length.out=100)
+rho = seq(from=-1,to=1,length.out=21)
+```
+
+Para cada entrada σ2 de SIG2 y cada entrada de RHO:
+
+  - Generar una muestra de tamaño N = 500 de una distribución bivariada normal $Z =(X,Y)$ donde $X \sim N(0,1)$ y $Y \sim N(0,\sigma^2)$ y el coeficientede correlación de X y Y es $\rho$. Z es una matriz de dimensiones 500 × 2.
+  - Crear una matriz de 500 × 2, llámenlo EXPZ, con las exponenciales de las entradas de Z. ¿Qué distribución tienen estas variables transformadas?
+  - Calculen el coeficiente de correlación, \hat{p} de las columnas de EXPZ. Grafiquen los puntos $(\sigma^2, \hat{ρ})$ y comenten sobre lo que obtuvieron.
+
+La siguiente función permite generar una muestra aleatoria de tamaño n de una variable aleatoria normal multivariada con vector de medias $\mu$ y matriz de covarianzas $\Sigma$:
+```{r}
+rnorm_multivariate <- function(n,mu,Sigma){
+  m <- length(mu)
+  
+  eig <- eigen(Sigma)
+  lambda <- eig$values; 
+  V <- eig$vectors
+  
+  Q <- V %*% diag(sqrt(lambda)) %*% t(V)
+  
+  Z <- matrix(rnorm(n*m),nrow=n, ncol=m)
+  X <- Z %*% Q + matrix(mu,n,m,byrow=T)
+  
+  return (X)
+}
+```
+
+Haciendo la simulación
+```{r, warning=FALSE}
+normales=list(NULL)
+EXPZ = list(NULL)
+i<-1
+sigmas <- rep(0,2100)
+rho_gorros <- rep(0,2100)
+rhos <- rep(0,2100)
+
+for (r in rho){
+  for (s in sig2){
+    
+    Sigma = matrix(c(1,sqrt(s)*r,sqrt(s)*r,s),ncol=2)
+    normales[[i]] <- rnorm_multivariate(5000, c(0,0), Sigma)
+    EXPZ[[i]] <- exp(normales[[i]])
+    
+    sigmas[i] <- s
+    rho_gorros[i] <- cor(EXPZ[[i]])[1,2]
+    rhos[i] <- r
+    
+    i = i+1
+  }
+}
+```
+EXPZ se obtiene tras aplicar la función exponencial a una variable aleatoria distribuida normal de forma que EXPZ se distribuye lognormal.
+
+Graficando:
+
+```{r}
+par(mfrow=c(1,2))
+plot(sigmas,rhos)
+plot(sigmas,rho_gorros)
+```
+
+La gráfica del lado izquierda está formada por los puntos $(\sigma^2, \rho)$ que fueron utilizados para generar las normales, la gráfica del lado derecho está formada por puntos de la forma $(\sigma^2, \hat{\rho})$ donde $\hat{\rho}$ es la correlación entre dos variables lognormales obtenidas a partir de las siguientes normales $N(0,1)$ y $N(0,\sigma^2)$.
+
+Notamos que la correlación cambió sustancialmente.
+
+

@@ -1,0 +1,316 @@
+---
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+```{r}
+library (tidyr)
+library(ggplot2)
+library(ggthemes)
+require(gridExtra)
+source("MM1_queue.R")
+```
+
+---
+  title: 'Tarea 1'
+  output: html_document
+---
+
+1. Sea $X$ el número de ’unos’ obtenido en $12$ lanzamientos de un dado honesto. Entonces
+   $X$ tiene una distribución binomial. Calcular una tabla con los valores de la función de
+   distribución para $x = 0, 1, ... , 12$ por dos métodos: usando la función cumsum y usando la
+   función $pbinom$. También determinar cuánto vale $P(X > 7)$. 
+  
+      + En este caso tenemos que $X \sim Bin\left(12,\frac{1}{6}\right)$, se quiere obtener la distribución de dicha variable aleatoria,             comencemos por obtener la función de densidad y a partir de ella obtengamos la distribución:
+        
+        ``` {r}
+          bin_density = dbinom(0:12, 12, 1/6)
+          bin_distribution_1 = cumsum(bin_density)
+          distribution <- data.frame(bin_distribution_1, row.names = 0:12)
+          knitr::kable(distribution)
+        ``` 
+      \
+      
+      + Ahora, utilizando el comando de R para obtener la distribución
+      
+        ```{r}
+          bin_distribution_2 = pbinom(0:12,12,1/6)
+          distribution <- data.frame(bin_distribution_2, row.names = 0:12)
+          knitr::kable(distribution)
+        ```
+        
+      + Finalmente, determinamos $P(X > 7)$:
+        ```{r}
+          1 - pbinom(7, 12, 1/6)
+          sum(dbinom(8:12, 12, 1/6))
+        ```
+\
+2. (Estaturas de presidentes gringos). En un artículo de Wikipedia, se reportan las estaturas
+    de los Presidentes de los Estados Unidos y los de sus oponentes en elecciones. Se ha notado
+    que mientras más alto sea el presidente típicamente gana la elección. 
+    
+    + Comencemos por leer el Dataframe de el archivo csv obtenido de Wikipedia:
+    
+    ```{r}
+       presidents_heights <- read.csv('presidents_heights.csv')
+       knitr::kable(presidents_heights)
+    ```
+\
+
+    + Y realizamos la gráfica:
+    
+    ```{r}
+       ggplot(presidents_heights, aes(opponent_height, winner_height)) +
+           scale_x_continuous(breaks = presidents_heights$opponent_height) +
+           scale_y_continuous(breaks = presidents_heights$winner_height) +
+           geom_point(aes(opponent_height, winner_height) , color = "blue", shape = 5, size=3) +
+           geom_text(aes(label=year),nudge_y = -1, size=3) 
+    ```
+    \
+    + Y otro tipo de gráfica:
+    
+    ```{r}
+       ggplot(presidents_heights, aes(year, height)) +
+           scale_x_continuous(breaks = presidents_heights$year) +
+           geom_point(aes(year, winner_height) , color = "blue", shape = 5, size=3) +
+           geom_point(aes(year, opponent_height), color = "red", shape = 6, size=3) +
+          theme_hc()
+    ```
+      
+\
+
+3. La función $rpois$ genera observaciones aleatorias de una distribución Poisson. Usen la
+   función $rpois$ para simular un número grande $(n = 1000, \ n = 10000)$ de muestras Poisson con
+   parámetro $\lambda = 0.61.$ Encuentren la función de masa de probabilidad, media, y varianza para
+   las muestras. Comparen con los valores teóricos de la densidad Poisson.
+   
+   + Comencemos por obtener la muestra con $n=1000$ 
+
+    ```{r}
+        lambda = .61
+        writeLines(paste('Valores teóricos:\nMedia   : ', lambda, ' \nVarianza :', lambda))
+        
+        pois = rpois(1000, lambda)
+        writeLines(paste('Con n = 1000:\nMedia muestral    : ', mean(pois), ' \nVarianza muestral :', var(pois)))
+        
+    ```
+    \
+    
+    Donde la tabla de densidad de la muestra contra la densidad teórica de la distribución es:
+    ```{r}
+        count <- data.frame(table(pois))
+        count$Freq = count$Freq/1000
+        m = max(pois)
+        count$teorica = dpois(0:m, .61)
+        count$error_absoluto = abs(count$teorica - count$Freq)
+        
+        knitr::kable(count)
+    ```
+   \ 
+   
+    Finalmente, graficamos para tener una comparación visual
+
+    ```{r}
+        expetimental = ggplot(count, aes(pois, Freq)) + 
+          labs(title="Frecuencias en la muestra", y="Número de ocurrencias", x="x") +
+          geom_bar(stat="identity") + theme_hc()
+        
+        teorica = ggplot(data.frame(x = c(0:m) ), aes(x = x)) +
+          labs(title="Función de densidad Poisson", y="y", x="x") +
+            stat_function( geom="point", n=m+1, fun=dpois, args=list(lambda)) +
+            theme_hc()
+          
+        grid.arrange(expetimental,teorica,ncol=2)
+    ```    
+    
+    ```{r}
+        lambda = .61
+        writeLines(paste('Valores teóricos:\nMedia   : ', lambda, ' \nVarianza :', lambda))
+        
+        pois = rpois(10000, lambda)
+        writeLines(paste('Con n = 10000:\nMedia muestral    : ', mean(pois), ' \nVarianza muestral :', var(pois)))
+    ```
+    Donde la tabla de densidad de la muestra contra la densidad teórica de la distribución es:
+    ```{r}
+        count <- data.frame(table(pois))
+        count$Freq = count$Freq/10000
+        m = max(pois)
+        count
+        count$teorica = dpois(0:m, .61)
+        count$error_absoluto = abs(count$teorica - count$Freq)
+        
+        knitr::kable(count)
+
+    ``` 
+    \
+    
+    Finalmente, graficamos para tener una comparación visual
+    
+    ```{r}
+        expetimental = ggplot(count, aes(pois, Freq)) + 
+          labs(title="Frecuencias en la muestra", y="Número de ocurrencias", x="x") +
+          geom_bar(stat="identity") + theme_hc()
+        
+        teorica = ggplot(data.frame(x = c(0:m) ), aes(x = x)) +
+          labs(title="Función de densidad Poisson", y="y", x="x") +
+            stat_function( geom="point", n=m+1, fun=dpois, args=list(lambda)) +
+            theme_hc()
+          
+        grid.arrange(expetimental,teorica,ncol=2)
+    ```
+\
+
+4. Escriban una función en R llamada $sd.n$ que regrese el valor estimado de $\hat{\sigma}$ de una muestra
+de tamaño $n$, utilizando la fórmula del estimado máximo verosímil de la varianza.
+
+    + Dado que $$\hat{\sigma} =  \sum_{i=1}^{n}(x_i - \bar{x})^2 $$
+    \
+
+    ```{r}
+        sd.n <- function(X, insesgado = FALSE){
+          
+          media = mean(X)
+            if (insesgado == TRUE){
+              var = sum( (X - media )^2 )/ (length(X)-1)
+            }
+            else{
+              var =  sum( (X - media )^2 )/ (length(X))
+            }
+            
+            return (var)
+        }
+  
+    ```
+    Y comparando dicha función con la de R:
+    ```{r}
+      var(pois)
+      sd.n(pois, insesgado=TRUE) 
+      sd.n(pois)
+    ```
+\
+\
+5. Escriban una función norma que calcule la norma Euclideana de un vector numerico de
+longitud $n$. Evaluar la norma de los vectores $(0, 0, 0, 1)$, $(2, 5, 2, 4)$ y $(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)$
+    ```{r}
+        norm_2 <- function(x){
+            sqrt(sum(x^2))
+        }
+    
+      v1 = c(0,0,0,1)
+      v2 = c(2, 5, 2, 4)
+      v3 = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+      
+      norm_2( v1 )
+      norm_2( v2 ) 
+      norm_2( v3 ) 
+    ```
+
+\
+\
+6. Usar la función curve para graficar la función $f(x) = \frac{e^{-x^2}}{1 + x^2}$ en el intervalo $0 \leq x \leq 10$. Luego usar la función integrate para calcular el valor de la integral: $$\int_{0}^{\infty} \frac{e^{-x^2}}{1 + x^2}$$El límite superior se especifica usando el argumento upper=Inf en la función integrate.
+
+
+```{r}
+  f <- function(x){
+      exp(-(x^2))/(1 + x^2)
+  }
+  
+  curve(f, from = 0, to = 10)
+  integrate(f, lower = 0, upper = Inf)
+```
+
+
+7. Construir una matriz con 10 renglones y 2 columnas que contienen datos provenientes de
+una normal estándar: $x$ $<-$ matrix(rnorm(20),10,2) Esta es una muestra de 10 observaciones de una distribución normal bivariada. Usen la función apply y la función norma que crearon en un ejercicio anterior para calcular las normas euclideanas para cada una de las 10 observaciones.
+
+    ```{r}
+    x <- matrix(rnorm(20),10,2)
+    x
+    apply(x, 1, norm_2)
+    ```
+\
+8.  Los siguientes datos describen el factor de desgaste de papel manufacturado bajo diferentes
+    presiones durante el prensado. Cuatro hojas de papel fueron seleccionadas y probadas para
+    cada uno de los cinco lotes manufacturados,  Hacer un boxplot para comparar los diferentes factores de   resistencia para cada presión.
+  
+    ```{r}
+      a = c(35.0,35.0,35.0,35.0,49.5,49.5,49.5,49.5,70.0,70.0,70.0,
+            70.0,99.0,99.0,99.0,99.0,140.0,140.0,140.0,140.0)
+      b = c(112,119,117,113,108,99,112,118,120,106,102,109,110,101,99,104,100,102,96,101)
+      desgaste <- data.frame("Presion" = a, "Factor de resistencia" = b)
+      knitr::kable(head(desgaste))
+
+      
+    ```
+  \
+  
+    Y creamos la boxplot:
+ 
+    ```{r}
+       ggplot(desgaste, aes(group = Presion, x = Presion, y = Factor.de.resistencia)) + 
+            geom_boxplot() +
+            scale_x_continuous(breaks = pretty(desgaste$Presion, n = 10)) +
+            scale_y_continuous(breaks = pretty(desgaste$Factor.de.resistencia, n = 10)) +
+            theme_hc()
+    ```
+    
+
+  9. Relacionado con el modelo de línea de espera. Incorporar las variables:
+     
+     + El tiempo total promedio de los n clientes en el sistema ('promedio_tiempo_en_sistema')
+     + La longitud máxima de la cola ('long_max_cola')
+     + La máxima espera en cola ('max_espera')
+     
+     Y ejecutar el modelo 100 veces con $\lambda A = 5$, $\lambda S = 4$ y $n = 1000$ y hacer un histograma 
+     para cada una de las estadísticas de desempeño, y calcular estadísticas descriptivas
+     (media, varianza y coeficiente de variación, min, max, etc) para cada una de ellas.
+     
+     Obteniendo los resultados de las medidas descriptivas para las 100 simulaciones:
+    
+    ```{r}
+      df <- data.frame(0,0,0,0,0,0)
+      names(df)<-c("Prom_espera","Utilizacion","Prom_clientes", 
+                   "Promedio_en_sistema", 'Long_max', 'Max_espera')
+      
+      for (i in 1:1000){
+        ans = mm1(lambdaA = 5, lambdaS = 4, n = 1000)
+        df[nrow(df) + 1,] = c(ans[1:6])
+      }
+      df <- data.frame(df[-1, ])
+      row.names(df) <- NULL
+      knitr::kable(head(df))
+      ```
+    \
+    
+    Mostrando estadísticas descriptivas
+    ```{r}
+      summary(df)
+    ```
+    Y finalmente, graficando: 
+    
+    ```{r}
+    
+    Promedio_espera_hist    = ggplot(df, aes(Prom_espera)) +
+                            geom_histogram()
+    Utilizacion_hist        = ggplot(df, aes(Utilizacion)) +
+                                geom_histogram()
+    Promedio_clientes_hist  = ggplot(df, aes(Prom_clientes)) +
+                                geom_histogram()
+    tiempo_en_sistema_hist  = ggplot(df, aes(Promedio_en_sistema)) +
+                                geom_histogram()
+    Long_max_cola_hist      = ggplot(df, aes(Long_max)) +
+                                geom_histogram()
+    Max_espera_en_cola_hist = ggplot(df, aes(Max_espera)) +
+                                geom_histogram()
+    
+    grid.arrange(Promedio_espera_hist, Utilizacion_hist, 
+                 Promedio_clientes_hist, tiempo_en_sistema_hist,
+                 Long_max_cola_hist, Max_espera_en_cola_hist,
+                 ncol=3)
+    
+    ```
+  
+  
+  
+  

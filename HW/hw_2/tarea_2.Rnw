@@ -1,0 +1,585 @@
+<<echo=FALSE, results='hide'>>=
+Sys.setlocale(category = 'LC_ALL','en_US.UTF-8')
+@
+
+\documentclass[12 pt]{article}
+\usepackage[top=3cm]{geometry}
+
+
+\usepackage{enumerate} 
+\usepackage[utf8x]{inputenc}
+\usepackage[spanish,mexico]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{amsthm}
+
+\usepackage{listings}
+\usepackage{minted}
+
+\usepackage{graphicx}
+
+\title{Simulación - Segunda tarea}
+\author{Sergio Arnaud Gómez \quad \quad \ 159189 \\
+        Jorge Rotter Vallejo \quad \quad \ 158391 }
+\date{13 de septiembre del 2018}
+
+\newtheorem{teo}{Teorema}
+\newtheorem{lema}[teo]{Lema}
+\renewcommand\qedsymbol{$\null\hfill\blacksquare$}
+
+\begin{document}
+\maketitle
+\begin{enumerate}
+    
+
+    \item Probar por inducción que para un GLC:
+    
+    \[ Z_k \equiv \left[a^kZ_0 + c\frac{a^k - 1}{a - 1}\right] mod \ m \] 
+    
+    \underline{Demostración:} (Por inducción sobre k)
+    
+    (Base de inducción) si $k=0$ tenemos que:
+    \begin{align*}
+        a^kZ_0 + c\frac{a ^k - 1}{a - 1} &=
+        a^0Z_0 + c\frac{a^0 - 1}{a - 1}\\ &=
+        Z_0 + c\frac{1 - 1}{a - 1} \\ &=
+        Z_0 \\ &\equiv Z_0 \ mod  \ m
+    \end{align*}
+    
+    (Hipótesis de inducción) Ahora supongamos que el resultado válido para $k=n$ y probemos la afirmación para $n+1$. 
+    
+    Por un lado, por la definición de los generadores lineales congruenciales tendemos que :
+    \begin{align*}
+        Z_{n+1} \equiv (aZ_n + c) \ mod \ m \tag{1} \label{eq:1}
+    \end{align*}
+    
+    Por otro lado, por la hipótesis de inducción tenemos que:
+    \begin{align*}
+        Z_n \equiv \left[a^nZ_0 + c\frac{a^n - 1}{a - 1}\right] mod \ m 
+    \end{align*}
+    
+    Trabajando con esta última expresión obtenemos:
+    \begin{align*}
+        & & Z_n &\equiv \left[a^nZ_0 + c\frac{a^n - 1}{a - 1}\right] mod \ m \\
+        & \implies & aZ_n &\equiv a\left[a^nZ_0 + c\frac{a^n - 1}{a - 1}\right] mod \ m \\
+        & \implies & aZ_n + c &\equiv a\left[a^nZ_0 + c\frac{a^n - 1}{a - 1}\right] + c mod \ m \\
+        & \iff & aZ_n + c &\equiv \left[a^{n+1}Z_0 + c\frac{a^{n+1} - a}{a - 1} + c\right] mod \ m \\
+        & \iff & aZ_n + c &\equiv \left[a^{n+1}Z_0 + c\frac{a^{n+1} - 1}{a - 1} \right] mod \ m  \tag{2} \label{eq:2} \\ 
+    \end{align*}
+    
+    Dado que la relación de congruencia es, en particular, una relación de equivalencia se tiene la transitividad y por las ecuaciones \eqref{eq:1} y \eqref{eq:2} concluimos la demostración al obtener:
+    \begin{align*}
+        Z_{n+1} \equiv \left[a^{n+1}Z_0 + c\frac{a^{n+1} - 1}{a - 1} \right] mod \ m 
+    \end{align*} 
+    \qedsymbol
+    
+    \newpage
+    
+    \item¿Qué se puede decir de el periodo de $Z_i \equiv aZ_{i-1}\ mod \ m$  con $a = 630,360,016$ y $m = 2^{31} -1$
+    
+    \underline{Solución:}
+    
+    Dado que es un GLC multiplicativo no cumple el teorema del periodo completo (c = 0 por lo que no es primo relativo con m) de forma que el periodo máximo que podría alcanzar es m-1
+    
+    \newpage
+    
+    \item Sin calcular ninguna $Z_i$, determinar cuál de los siguientes GLC’s mixtos tienen periodo completo.
+    
+    \begin{enumerate}[label=(\alph*)]
+        \item $Z_i \equiv [13Z_i + 13] \ mod \ 16$
+        \item $Z_i \equiv [12Z_i + 13] \ mod \ 16$
+        \item $Z_i \equiv [13Z_i + 12] \ mod \ 16$
+        \item $Z_i \equiv [Z_i + 12] \ mod \ 16$
+        \item $Z_i \equiv [aZ_i + c] \ mod \ m$ con $a = 2814749767109$, $c = 59482661568307$ y $m =2^{48}$
+        
+    \end{enumerate}
+    
+    \underline{Solución:}
+    
+    Para resolver dicho problema se realizó una función en python que permite saber si un GLC tiene periodo completo o no, lo hace tras verificar que cumpla las 3 hipótesis del teorema del periodo completo, es decir, verifica:
+    
+    \begin{enumerate}
+        \item Que c y m son primos relativos
+        \item Que si q es un número primo que divide a m, entonces q también divide a − 1 (a ≡ 1
+              mod q para cada q factor primo de m.)
+        \item Finalmente, que si 4 divide a m, entonces 4 divide a − 1. (a ≡ 1 mod 4 si 4 divide a m).
+    \end{enumerate}   
+
+    El programa está escrito en python 3 y el código fuente se muestra a continuación:
+    
+    \inputminted[fontsize=\small]{python}{complete_period.py}
+    
+    \newpage
+    Tras ejecutar el programa en los ejercicios proporcionados se obtuvo que los generadores dadas por las expresiones a), d) y e) tienen periodo completo mientras que los dados por b) y c) no, a continuación se muestran los resultados
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=11.5cm]{output_3.png}
+    \end{figure}
+    
+    \newpage
+    
+    
+    \item Mostrar que el promedio de las $U_i’s$ tomadas de un ciclo completo de un GLC de periodo completo es $\frac{1}{2} - \frac{1}{m} $
+    
+    \underline{Demostración:}
+    
+    Notemos que dado un generador de ciclo completo, si $Z_i \equiv$ $\left[a^iZ_0 + c\frac{a^i - 1}{a - 1}\right] mod \ m$ entonces $\{ Z_i \ | \ 0 \leq i < m, \} = \{0,1,...,m-1\}$. 
+    
+    Para probar dicha afirmación basta notar que por un lado $\{ Z_i \ | \ 0 \leq i < m, \} \subset \{0,1,...,m-1\}$ por la definición de los $Z_i's$. Por otro lado $\{0,1,...,m-1\} \subset \{ Z_i \ | \ 0 \leq i < m, \} $ pues en caso contrario el generador no sería completo. 
+    
+    Con dicha observación, tenemos: 
+    \begin{align*}
+        \frac{1}{m}\sum_{i=1}^{m} U_i &= \frac{1}{m}\sum_{i=1}^{m} \frac{Z_i}{m} \\
+        &= \frac{1}{m^2}\sum_{i=1}^{m}  Z_i  \\
+        &= \frac{1}{m^2}\sum_{i\in\mathbb{N}, i<m} i \\
+        &= \frac{1}{m^2} \frac{(m-1)(m)}{2} \\
+        &= \frac{(m-1)}{2m} \\
+        &= \frac{m}{2} - \frac{1}{2m}
+    \end{align*}
+    \qedsymbol
+    
+    \newpage
+    
+    \item 
+    \underline{Solución:}
+
+    Comenzaremos por realizar 3 gráficas para analizar visualmente la uniformidad de los números generados por excel:
+
+    <<cache=TRUE,message=FALSE,echo=FALSE>>=
+        df = read_csv('Uniform_excel.csv')
+        unif = df$Unif
+        #summary(unif)
+    @
+
+    <<cache=TRUE,warning=FALSE,message=FALSE,echo=FALSE>>=
+     require(gridExtra)
+    @
+
+    <<cache=TRUE,echo=FALSE>>=
+    hist = ggplot(df, aes(Unif)) + 
+                geom_histogram(breaks = seq(0,1,by = .05)) +
+                labs(title="Histograma", y="Frecuencia", 
+                x="Valor") 
+
+    scat = ggplot() + 
+                geom_point(aes(unif[1:9999], unif[2:10000]), shape = 5, size=.75) +
+                labs(title="Scatter", y="U(i)", x="U(i-1)") 
+
+    qqplt = ggplot(df, aes(sample = Unif), ) + 
+            stat_qq_line(distribution = qunif, 
+            dparams = list(min=0,max=1), 
+            color = 'red', size = 1) +
+            stat_qq(distribution = qunif, 
+            dparams = list(min=0,max=1), shape = 5, size=.001)+
+            labs(title="qqplot")
+   
+    grid.arrange(hist,scat,qqplt, ncol=2)
+    @
+
+    Al analizar dichas gráficas notamos que, al menos visualmente, los números generados por excel siguen una distribución uniforme
+
+    Asimismo, se realizaron una serie de pruebas de hipótesis para constrastar la hipótesis nula de Uniformidad con la alternativa de no uniformidad, los resultados son los siguientes:
+
+    \begin{center}
+        \begin{tabular}{|c|c|c|}
+            \hline
+            Prueba & Valor p \\
+            \hline
+            One-sample Kolmogorov-Smirnov test & .6  \\
+            Cramer Von Mises Two Sample test & .15 \\
+            Chi-squared Test & .8 \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    Dado que todos los valores p son mayores a .05 no hay evidencia para rechazar la hipótesis nula de uniformidad.
+
+    De la misma manera, se realizaron una serie de pruebas de hipótesis para constrastar la hipótesis nula de Independencia (o bien, aleatoriedad) con la de no aleatoriedad, los resultados son los siguientes:
+
+
+    \begin{center}
+        \begin{tabular}{|c|c|c|}
+            \hline
+            Prueba & Valor p \\
+            \hline
+            Runs test & .1  \\
+            Poker test & .82 \\
+            Gaps Test & .52 \\
+            Bartett Test & .57 \\
+            Bartlett B Test for white noise & .5 \\
+            Box-Pierce test& .8 \\
+            Box-Ljung test test& .8 \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    Dado que todos los valores p son mayores a .05 no hay evidencia para rechazar la hipótesis nula de aleatoriedad.
+
+    Un buen método para generar números aleatorios debe cumplir las siguientes carácterísticas:
+    \begin{enumerate}
+        \item \underline{Los números deben distribuirse uniformemente:} Los números efectivamente se distribuyen uniformemente (a continuación veremos las pruebas de uniformidad)
+        \item \underline{Los números deben ser independientes:} Los números efectivamente son independientes (a continuación veremos las pruebas de independencia)
+        \item \underline{Los métodos deben ser eficientes:} El algoritmo es eficiente (se utiliza el método combinado de Wichman y I.D. Hill)
+        \item \underline{Los números deben ser replicables:} Los números NO son replicables, excel no permite poner una semilla
+        \item \underline{Los generadores deben presentar un periodo largo:} El periodo es largo, el algoritmo genera alrededor de $10^13$ números distintos
+    \end{enumerate}
+
+    A partir de excel 2003, microsoft comenzó a utilizar el método combinado de Wichman y I.D. Hill para generar números aleatorios ya que anteriormente el generador de excel tenía un desempeño súmamente mediocre, en este caso el generador de excel pasó nuestra batería de pruebas por lo que lo calificaríamos como un buen generador de números pseudoaleatorios.
+    
+
+    \newpage
+    \item Probar que la parte fraccional de la suma de uniformes en $[0,1]$: $U_1 + U_2 + ... + U_k$ es también uniforme en el intervalo $[0,1]$.
+    
+    \underline{Demostración:} 
+    
+    Comencemos por notar que, dadas $U_1$ y $U_2$ variables aleatorias con distribución uniforme, entonces la parte fraccional de $U_1 + U_2$ tiene dicha distribución.
+    
+    Denotemos por $\{x\} = x -  \lceil x \rceil $ la parte fraccional de x, sabmemos que la densidad de $U = U_1 + U_2$ es la siguiente: 
+    \begin{align*}
+        f_U(x) = \begin{cases} 
+              x & 0 \leq x \leq 1\\
+              2-x & 1 < x \leq 2
+           \end{cases}
+    \end{align*}
+    
+    Asimismo, la distribución de $\{U\} = \{U_1 + U_2\}$ está dada por:
+    \begin{align*}
+        F_{\{U\}}(u) &= P\{ \{U\} <= u\} \\
+        &= P\{ U - \lfloor U \rfloor <= u\} \\
+        &= P\{ U <= u,\ 0 \leq U \leq 1 \} + P\{ U - \lfloor U \rfloor <= u,\ 1 < U \leq 2 \} \\
+        &= \int_0^u f_U(x) dx + \int_1^{1+u} f_U(x) dx \\
+        &= \int_0^u x dx + \int_1^{1+u} 2-x dx\\
+        &= \frac{u^2}{2} + 2u - \frac{(1+u)^2}{2} + \frac{1}{2}\\
+        &= u
+    \end{align*}
+    
+    De esta manera la parte fraccional de $U_1 + U_2$ tiene distribución uniforme en el intervalo $(0,1)$. 
+    
+    Para la prueba del caso general $U_1 + ... + U_k$ se debe proceder por inducción; si se supone que la parte fraccional de la suma de $n-1$ variables aleatorias con distrución uniforme sigue dicha distrución, es suficiente notar que $\{U_1 + U_2 +... + U_k\} =\{\{U_1\} + \{U_2 + ... + U_k\}\}$ para concluir con la demostración.
+
+    \qedsymbol
+    
+    
+    \newpage
+    
+    \item Un generador de Fibonacci obtiene Xn+1 a partir de Xn y Xn−1 de la siguiente forma:
+    
+    \begin{align*}
+        X_{i+1} = (X_i + X_{i-1}) \ mod \ m
+    \end{align*}
+    
+    Con $X_0$ y $X_1$ dados. Para $m=5$ solo dos ciclos son posibles, encontrarlos y al periodo.
+    
+    \underline{Solucion:}
+    
+    Para la solución a dicho problema se implementaron las siguientes funciones en python3
+    
+    \inputminted[fontsize=\scriptsize]{python}{fibonacci_generator.py}
+    
+    La función \underline{fibo} recibe como parámetros $X_0$ y $X_1$, las raíces y m, el módulo. Y genera el los números producidos por la iteración hasta caer en un ciclo, como ejemplos:
+    
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=11cm]{fibonacci.png}
+    \end{figure}
+    
+    Haciendo uso de dicha función, la siguiente función obtiene todos los posibles ciclos de el generador de fibonacci para un n dado, para $n=5$ tenemos los siguientes resultados:
+    
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=11cm]{cicles.png}
+    \end{figure}
+    
+    Notamos que, además del ciclo trivial, hay 2 ciclos distintos.
+    
+    \newpage
+    
+    \item Genera 10,000 números con una semilla de $Z_0 = 1$ usando el generador $Z_n = 75Z_{n-1} \ mod  \ (2^{31} −1)$ Clasifica los números en 10 celdas de igual tamaño y prueben por  uniformidad usando la prueba $\chi^2$ con un nivel de confianza del 90\%. Aplicar también la prueba de rachas.
+    
+    \underline{Solución}
+
+<<warning=FALSE,message=FALSE>>=
+library(tidyverse)
+library(randtests)
+@    
+
+<<cache=TRUE>>=
+GLC = function(z0,a,c,m,k){
+    Ui = rep(0,k)
+    Ui[1] = z0/m
+    z = (z0*a + c)%%m
+    for (i in 2:k){
+        Ui[i] = z/m
+        z = (z*a + c)%%m
+    }
+    return (as.data.frame(Ui))
+}
+
+df = GLC(1,7^5,0,2^31-1,10000)
+unif = df$Ui
+
+h = hist(unif, breaks = 10, right = FALSE, plot = FALSE)
+breaks_cdf <- punif(h$breaks)
+null.probs <- breaks_cdf[-1] - breaks_cdf[-length(breaks_cdf)]
+print(chisq.test(h$counts, p = null.probs, rescale.p = T))
+@
+Como p es mayor que .1, no hay evidencia para rechazar la hipótesis nula, es decir, la hipótesis de uniformidad.
+
+Ahora apliquemos la prueba de rachas, por default la función runs.test del paquete \textit{randtests} de R realiza la prueba de rachas de \textit{Wald-Wolfowitz}.
+
+<<cache=TRUE>>=
+runs.test(unif, plot = T)
+@
+
+Notamos que no hay argumentos para rechazar la hipótesis alterntativa de no aleatoriedad puesto que el p-value es mayor que .1.
+
+
+\newpage
+
+\item Aplicar a los datos del ejercicio las pruebas de correlación, gaps y poker.
+
+Comencemos por aplicar la prueba de poker, por default las \textit{manos} son de tamaño 5.
+
+<<cache=TRUE>>=
+library(randtoolbox)
+poker.test(unif)
+@
+
+La prueba de poker no presenta argumento para rechazar la hipótesis de no aleatoriedad puesto que se reporta un p-value = .85.
+
+Ahora realicemos la prueba de gaps. Por default, la función \textit{gap.test} de R considera como gap al intervalo [0,.5], realizando la prueba obtenemos:
+
+<<cache=TRUE>>=
+gap.test(unif)
+@
+
+Observamos que el p-value es igual a .87 de forma que no tenemos argumentos para rechazar la hipótesis de no aleatoriedad. Sin embargo, realizaremos la prueba de gaps una vez más pero ahora moficicando el intervalo a [.3,.6]
+
+<<cache=TRUE>>=
+gap.test(unif, lower = .3, upper = .6)
+@
+
+Observamos que el p-value es igual a 0.037 de forma que rechazamos la hipótesis de aleatoriedad.
+
+Finalmente, realizaremos la prueba de autocorrelación. Para ello se obtendrá la función de autocorrelación utilizando el paquete \textit{forecast}.
+
+<<cache=TRUE>>=
+library(hwwntest)
+library(forecast)
+
+#Obteniendo la función de autocorrelación
+ACF = Acf(unif)
+
+#Realizando el test de Bartlett
+rho <- ACF$acf[2]
+bt <- sqrt(length(unif))*rho
+p.value = 1-pnorm(bt)/2 
+print(p.value)
+
+#Test de Bartlett para ruido blanco
+bartlettB.test(unif)
+
+#Test de Box-Pierce
+Box.test(unif,lag=5,type="Box-Pierce")
+
+#Test de Ljung-Box
+Box.test(unif,lag=5,type="Ljung-Box")
+@
+
+Como se muestra en la gráfica, la función de autocorrelación no presenta valores extremos, asimismo, ninguna prueba de autocorrelación presenta argumentos para rechazar la hipótesis de aleatoriedad.
+    
+\newpage
+
+\item Generar 1500 números del generador RANDU. Hacer una prueba de Kolmogorov-Smirnov al 95\% de confianza.
+
+
+\underline{Solución}:
+
+A continuación se realizara la prueba de Kolmogov-Smirnof a los dígitos generados por el generador RANDU con dos semillas distintas, 100 y 32.
+
+<<cache=TRUE>>=
+
+randu1 = GLC(100,2^16 +3,0, 2^31,1500)
+print(ks.test(randu1$Ui,"punif"))
+
+    
+randu2 = GLC(32,2^16 +3,0, 2^31,1500)
+print( ks.test(randu2$Ui,"punif") )
+    
+@
+
+Los resultados arrojados por la prueba a un nivel del 95\% de confianza no presentan argumentos para rechazar la hipótesis nula (de uniformidad) en el primer caso (semilla $X_0=100$) puesto que le valor p es igual a .9351. 
+
+Asimismo, en el segundo caso ($X_0 = 32$) se rechaza la hipótesis nula puesto que el valor p es .01358.
+
+\newpage
+
+\item La página The number e to one million digits  contiene el primer millón de
+dígitos de e (pueden usar cualquier otra página). Considerando estos dígitos:
+
+\begin{itemize}
+    \item Realizar un histograma y verificar la hipótesis de que los dígitos corresponden a una distribución uniforme discreta.
+    
+    \item Verificar independencia de los dígitos, considerando las pruebas de gaps, de poker y de rachas. Una idea de ver los datos está en la siguiente imagen (esta está hecha para $\pi$):
+    
+\end{itemize}
+
+Comenzamos con la lectura de los dígitos:
+
+<<cache=TRUE>>=
+decimals_e = readChar('e.txt', file.info('e.txt')$size)
+decimals_e = gsub('\n', '', decimals_e)
+df = data.frame("val" = unlist((strsplit(decimals_e, ''))))
+df$val = as.numeric(as.character(df$val))
+@
+
+Realizamos un histograma de los mismos:
+
+<<cache=TRUE>>=
+ggplot(df, aes(val)) + 
+    geom_histogram(breaks = seq(-.5,9.5,by = 1)) +
+    labs(title="Histograma de primer millón de dígitos de e", 
+    y="Frecuencia", x="Dígito") 
+
+@
+
+Realizamos una serie de gráficas qq-plot 
+
+<<cache=TRUE>>=
+graf.teorica <- function(fun.quan,x,tit,...){
+    z <- sort(x,decreasing=F)
+    plot(fun.quan(ppoints(z),0,10),z,main=tit,xlab = 
+    "dist. teorica",ylab = "datos")
+    abline(a=0,b=1)
+}
+
+par(mfrow = c(2,2))
+
+graf.teorica(qunif, head(df$val,20), tit = "20 dígitos")
+graf.teorica(qunif, head(df$val,50), tit = "50 dígitos")
+graf.teorica(qunif, head(df$val,125), tit = "125 dígitos")
+graf.teorica(qunif, head(df$val,10000), tit = "10000 dígitos")
+
+@
+El test de $\chi^2$ a un nivel de 95\% de confianza:
+
+<<cache=TRUE>>=
+punifdisc <- function(q, min=0, max=9) ifelse(q<min, 
+0, ifelse(q>=max, 1, (floor(q)-min+1)/(max-min+1)))
+qunifdisc <- function(p, min=0, max=9) floor(p*(max-min+1))
+
+h1 <- hist(df$val, breaks = seq(-.5,9.5,by = 1), plot = F)
+breaks_cdf <- punifdisc(h1$breaks)
+null.probs <- breaks_cdf[-1] - breaks_cdf[-length(breaks_cdf)]
+a <- chisq.test(h1$counts, p = null.probs, rescale.p = T)
+a
+@
+
+Dado que el valor p es mayor que .05 no existen argumentos para rechazar la hipótesis de uniformidad. Continuemos con las pruebas de independencia.
+
+<<cache=TRUE>>=
+
+    digits = df$val
+    runs.test(digits)
+
+    #Test de Bartlett para ruido blanco
+    bartlettB.test(digits)
+
+    #Test de Box-Pierce
+    Box.test(digits,lag=5,type="Box-Pierce")
+
+    #Test de Ljung-Box
+    Box.test(digits,lag=5,type="Ljung-Box")
+
+    #Obteniendo la función de autocorrelación
+    ACF = Acf(digits)
+
+    #Realizando el test de Bartlett
+    rho <- ACF$acf[2]
+    bt <- sqrt(length(digits))*rho
+    p.value = 1-pnorm(bt)/2 
+    print(p.value)
+@
+
+Pasó todos los tests de independencia excepto el de Bartlett para ruido blanco.
+
+\newpage
+
+\item Escriban un programa que utilice el método de la transformación inversa para generar
+números de la densidad siguiente: $f(x) = \frac{1}{x^2} I(x \geq 1)$. Para probar su programa, hagan un histograma de 10,000 números junto con la densidad f. Verificar la hipótesis
+de que la muestra sigue la distribución teórica dada y hacer un qq−plot e interpretar.
+
+Comencemos por aplicar el teorema de la transformación inversa:
+
+Dado que:
+
+\[f(x) = \frac{1}{x^2} I(x \geq 1)\]
+
+Tenemos que:
+
+\[F(x) = \int_1^x \frac{1}{x^2} = 1 - \frac{1}{x} \]
+
+Luego:
+
+\[X = F^{-1}(u) = \frac{1}{1-u}\]
+
+Pero $U \sim U(0,1)$ luego $1-U \sim U(0,1)$ obteniendo:
+
+\[x = \frac{1}{u}\ \quad U \sim U(0,1)\]
+
+Con esto, realizamos el siguiente código en R:
+
+<<cache=TRUE>>=
+    #Densidad
+    f = function(x){1/x^2}
+    #Distribución
+    F = function(x){1 - 1/x}
+
+    #Generamos uniformes
+    unifs = runif(10000)
+
+    #Aplicamos teorema
+    x = 1/unifs
+    
+    # Dibujamos histograma vs curva teórica   
+    # Limitamos x entre cero y 30 para apreciar 
+    # de mejor manera la gráfica     
+    hist(x,prob=T, breaks = 30000, xlim =
+    c(0,20))
+    curve(f,from=0,to=20,add=T,col="red")
+@
+
+
+Asimismo, realizamos el test de Kolmogorov-Smirnoff:
+
+<<cache=TRUE>>=
+    ks.test(x,F)
+@
+
+Dado que el valor p es mayor que .05 no tenemos argumentos para rechazar la hipótesis de bondad de ajuste.
+
+Finalmente, realizamos la gráfica quantil-quantil
+
+<<cache=TRUE>>=
+    fun.quan = function(p){1/(1-p)}
+    z <- sort(x,decreasing=FALSE)
+    plot(fun.quan(ppoints(z)), z, main='qq-plot',
+    xlab = "teórico" , ylab = "datos")
+    abline(a=0,b=1)
+@
+
+Dado que la función puede tomar valores en el intervalo $[1,\infty)$ se pueden obtener valores muy grandes y para dichos valores la función cuantil es muy dificil de aproximar ya que tenemos muy pocas observaciones (por eso en valores grandes las pocas observaciones no se acercan mucho a la recta) pero en valores pequeños tenemos muchas observaciones por lo que la función cuantil es más fácil de aproximar, cosa que también se muestra en la gráfica.
+
+
+
+
+
+
+
+\end{enumerate}
+
+
+
+\end{document}
