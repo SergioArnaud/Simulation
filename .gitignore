@@ -1,0 +1,32 @@
+# MAC OS 
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IPython
+profile_default/
+ipython_config.py
+
+# serverles
+.serverless/
+node_modules/
+
+# Python
+__pycache__/
+*.json
+
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+
+# Files
+*.csv
+*.xlsx
+
+# Keys
+*_keys.py
